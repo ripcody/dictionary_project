@@ -1,0 +1,22 @@
+{# dictionary_app/templates/dictionary_app/view.html #}
+
+{% extends 'dictionary_app/base.html' %} {# This line tells Django to use your base template #}
+
+{% block title %}View All Words{% endblock %} {# Sets the title for this page #}
+{% block page_title %}All Dictionary Words{% endblock %} {# Sets the main heading for this page #}
+
+{% block content %} {# This block will be inserted into the 'content' block of base.html #}
+<h2>Current Words and Definitions</h2>
+{% if items %}
+<ul>
+  {% for item in items %} {# Django loops through the 'items' (Word objects) passed from the view #}
+  <li>
+    <strong>{{ item.word }}</strong>: {{ item.definition }} {# Accessing attributes of the Word object #}
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<p>No words found in the dictionary. Go to <a href="{% url 'dictionary_app:add_word' %}">Add New Word</a> to start
+  adding some!</p>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,15 @@
+{% extends 'dictionary_app/base.html' %}
+
+{% block title %}Add Word{% endblock %}
+{% block page_title %}Add New Word{% endblock %}
+
+{% block content %}
+<form method="post" action="{% url 'dictionary_app:add_word' %}">
+  {% csrf_token %} {# VERY IMPORTANT for security in Django forms #}
+  <label for="word">Word:</label><br>
+  <input type="text" id="word" name="word" required><br><br>
+  <label for="definition">Definition:</label><br>
+  <textarea id="definition" name="definition" rows="4" cols="50" required></textarea><br><br>
+  <button type="submit">Add Word</button>
+</form>
+{% endblock %}

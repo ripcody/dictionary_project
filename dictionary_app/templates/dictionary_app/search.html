@@ -1,0 +1,70 @@
+{# dictionary_app/templates/dictionary_app/search.html #}
+
+{% extends 'dictionary_app/base.html' %}
+
+{% block title %}Search Word{% endblock %}
+{% block page_title %}Search Dictionary{% endblock %}
+
+{% block content %}
+<form method="post" action="{% url 'dictionary_app:search_word' %}">
+  {% csrf_token %}
+  <label for="search_word">Search Word:</label><br>
+  <input type="text" id="search_word" name="search_word" list="word_suggestions" value="{{ search_term|default:'' }}"
+    autofocus required>
+
+  {# Datalist for basic browser autocomplete. Populated by JavaScript #}
+  <datalist id="word_suggestions"></datalist>
+
+  <br><br>
+  <button type="submit">Search</button>
+</form>
+
+{% if exact_match %}
+<h2>Found Word:</h2>
+<p><strong>{{ exact_match.word }}</strong>: {{ exact_match.definition }}</p>
+{% elif search_term %} {# Only show "not found" if a search term was actually entered #}
+<p>Word "{{ search_term }}" not found in the dictionary.</p>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const searchInput = document.getElementById('search_word');
+    const dataList = document.getElementById('word_suggestions');
+    let debounceTimeout;
+
+    searchInput.addEventListener('input', function () {
+      clearTimeout(debounceTimeout);
+      const query = searchInput.value.trim();
+
+      if (query.length < 2) { // Only fetch if query is at least 2 characters long
+        dataList.innerHTML = ''; // Clear suggestions if query is too short
+        return;
+      }
+
+      debounceTimeout = setTimeout(() => {
+        fetch(`{% url 'dictionary_app:autocomplete' %}?q=${encodeURIComponent(query)}`)
+          .then(response => {
+            if (!response.ok) {
+              throw new Error('Network response was not ok');
+            }
+            return response.json();
+          })
+          .then(suggestions => {
+            dataList.innerHTML = ''; // Clear previous suggestions
+            suggestions.forEach(word => {
+              const option = document.createElement('option');
+              option.value = word;
+              dataList.appendChild(option);
+            });
+          })
+          .catch(error => {
+            console.error('Error fetching autocomplete suggestions:', error);
+            dataList.innerHTML = ''; // Clear suggestions on error
+          });
+      }, 300); // Debounce time: wait 300ms after last input before fetching
+    });
+  });
+</script>
+{% endblock %}
