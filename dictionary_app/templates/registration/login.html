@@ -1,0 +1,38 @@
+{# dictionary_app/templates/registration/login.html #}
+{% extends 'dictionary_app/base.html' %}
+
+{% block title %}Login{% endblock %}
+{% block page_title %}Login to Your Dictionary{% endblock %}
+
+{% block content %}
+{% if form.errors %}
+<p>Your username and password didn't match. Please try again.</p>
+{% endif %}
+
+{% if next %}
+{% if user.is_authenticated %}
+<p>Your account doesn't have access to this page. To proceed,
+  please login with an account that has access.</p>
+{% else %}
+<p>Please login to see this page.</p>
+{% endif %}
+{% endif %}
+
+<form method="post" action="{% url 'login' %}">
+  {% csrf_token %}
+  <p>
+    <label for="{{ form.username.id_for_label }}">Username:</label><br>
+    {{ form.username }}
+  </p>
+  <p>
+    <label for="{{ form.password.id_for_label }}">Password:</label><br>
+    {{ form.password }}
+  </p>
+
+  <input type="submit" value="Login">
+  <input type="hidden" name="next" value="{{ next }}">
+</form>
+
+<p><a href="{% url 'password_reset' %}">Lost password?</a></p>
+{# You might also add a link to a registration page here if you implement one #}
+{% endblock %}

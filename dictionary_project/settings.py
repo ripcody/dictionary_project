@@ -102,4 +102,12 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
+
 STATIC_URL = '/static/' # <-- Add this line
+
+# dictionary_project/settings.py
+# ...
+LOGIN_REDIRECT_URL = '/dictionary/add/'
+LOGIN_URL = '/accounts/login/'
+LOGOUT_REDIRECT_URL = '/accounts/login/'
+# ...

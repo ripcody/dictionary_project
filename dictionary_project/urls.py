@@ -1,9 +1,9 @@
-# dictionary_project/urls.py
 from django.contrib import admin
 from django.urls import path, include
-from django.shortcuts import redirect
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('dictionary_app.urls')), # Include your app's URLs
+    path('dictionary/', include('dictionary_app.urls', namespace='dictionary_app')),
+    path('accounts/', include('django.contrib.auth.urls')), # This line
+    path('', include('dictionary_app.urls', namespace='dictionary_app')),
 ]
