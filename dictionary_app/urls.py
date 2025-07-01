@@ -9,4 +9,6 @@ urlpatterns = [
     path('search/', views.search_word, name='search_word'),
     path('autocomplete/', views.autocomplete, name='autocomplete'),
     path('view/', views.view_all_words, name='view_all_words'),
+    # NEW: Endpoint for AJAX definition fetching
+    path('get_definition_ajax/', views.get_definition_ajax, name='get_definition_ajax'),
 ]

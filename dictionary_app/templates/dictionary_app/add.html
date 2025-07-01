@@ -2,12 +2,86 @@
 
 {% block content %}
 <form method="post" action="{% url 'dictionary_app:add_word' %}">
-  {% csrf_token %}
+  {% csrf_token %} {# Keep this for the full form submission #}
   <label for="word">Word:</label><br>
-  <input type="text" id="word" name="word" value="{{ word_text|default:'' }}" required><br><br>
+  <input type="text" id="word" name="word" value="{{ word_text|default:'' }}" required onblur="fetchDefinition()"><br><br>
+  {# IMPORTANT: Remove the 'required' attribute from the definition textarea #}
   <label for="definition">Definition:</label><br>
-  <textarea id="definition" name="definition" rows="4" cols="50"
-    required>{{ definition_text|default:'' }}</textarea><br><br>
+  <textarea id="definition" name="definition" rows="4" cols="50">{{ definition_text|default:'' }}</textarea><br><br>
   <input type="submit" value="Add Word">
 </form>
+
+<div id="message_area"></div> {# Optional: For displaying JS messages #}
+
+<script>
+    // Function to get CSRF token from cookie
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    const csrftoken = getCookie('csrftoken');
+
+    async function fetchDefinition() {
+        const wordInput = document.getElementById('word');
+        const definitionTextarea = document.getElementById('definition');
+        const messageArea = document.getElementById('message_area'); // Get the message area
+
+        const word = wordInput.value.trim();
+
+        // Clear previous messages
+        messageArea.innerHTML = '';
+        messageArea.style.color = 'black'; // Reset color
+
+        // Only fetch if a word is entered and the definition field is empty
+        if (word && !definitionTextarea.value.trim()) {
+            messageArea.textContent = 'Fetching definition...';
+            try {
+                // Make an AJAX request to a new Django endpoint
+                const response = await fetch('{% url "dictionary_app:get_definition_ajax" %}', {
+                    method: 'POST', // Use POST for data submission (even if just a word)
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrftoken // Include CSRF token for POST requests
+                    },
+                    body: JSON.stringify({ 'word': word })
+                });
+
+                if (!response.ok) {
+                    // Check for specific API errors vs. network errors
+                    const errorData = await response.json(); // Try to parse error message
+                    throw new Error(errorData.error || `HTTP error! Status: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                if (data.definition) {
+                    definitionTextarea.value = data.definition;
+                    messageArea.textContent = 'Definition fetched successfully!';
+                    messageArea.style.color = 'green';
+                } else {
+                    messageArea.textContent = `No definition found for "${word}". Please enter it manually.`;
+                    messageArea.style.color = 'orange';
+                }
+
+            } catch (error) {
+                console.error('Error fetching definition:', error);
+                messageArea.textContent = `Error fetching definition: ${error.message}. Please enter it manually.`;
+                messageArea.style.color = 'red';
+                definitionTextarea.value = ''; // Clear definition if there was an error
+            }
+        }
+    }
+</script>
 {% endblock %}
