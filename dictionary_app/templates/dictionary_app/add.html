@@ -1,17 +1,25 @@
 {% extends 'dictionary_app/base.html' %}
 
 {% block content %}
-<form method="post" action="{% url 'dictionary_app:add_word' %}">
-  {% csrf_token %} {# Keep this for the full form submission #}
-  <label for="word">Word:</label><br>
-  <input type="text" id="word" name="word" value="{{ word_text|default:'' }}" required onblur="fetchDefinition()"><br><br>
-  {# IMPORTANT: Remove the 'required' attribute from the definition textarea #}
-  <label for="definition">Definition:</label><br>
-  <textarea id="definition" name="definition" rows="4" cols="50">{{ definition_text|default:'' }}</textarea><br><br>
-  <input type="submit" value="Add Word">
+<form id="add_word_form" method="post" action="{% url 'dictionary_app:add_word' %}">
+    {% csrf_token %}
+    <label for="word">Word:</label><br>
+    <input type="text" id="word" name="word" value="{{ word_text|default:'' }}" required onblur="fetchDefinition()"
+        oninput="clearDefinitionOnNewInput()">
+    <span id="audio_controls"></span>
+    <br><br>
+    <label for="definition">Definition:</label><br>
+    <textarea id="definition" name="definition" rows="4" cols="50"
+        oninput="autoResizeTextarea(this)">{{ definition_text|default:'' }}</textarea><br><br>
+    <input type="submit" value="Add Word">
 </form>
 
-<div id="message_area"></div> {# Optional: For displaying JS messages #}
+<div id="message_area"></div>
+
+<div id="loading_spinner" style="display: none;">
+    <div class="spinner"></div>
+    Fetching definition...
+</div>
 
 <script>
     // Function to get CSRF token from cookie
@@ -21,7 +29,6 @@
             const cookies = document.cookie.split(';');
             for (let i = 0; i < cookies.length; i++) {
                 const cookie = cookies[i].trim();
-                // Does this cookie string begin with the name we want?
                 if (cookie.substring(0, name.length + 1) === (name + '=')) {
                     cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
                     break;
@@ -33,55 +40,156 @@
 
     const csrftoken = getCookie('csrftoken');
 
+    function clearDefinitionOnNewInput() {
+        const definitionTextarea = document.getElementById('definition');
+        const messageArea = document.getElementById('message_area');
+        const audioControlsContainer = document.getElementById('audio_controls');
+
+        definitionTextarea.value = '';
+        messageArea.innerHTML = '';
+        messageArea.style.color = 'black';
+        definitionTextarea.style.height = 'auto';
+
+        if (audioControlsContainer) {
+            audioControlsContainer.innerHTML = '';
+        }
+    }
+
+    function autoResizeTextarea(element) {
+        element.style.height = 'auto';
+        element.style.height = (element.scrollHeight) + 'px';
+    }
+
     async function fetchDefinition() {
         const wordInput = document.getElementById('word');
         const definitionTextarea = document.getElementById('definition');
-        const messageArea = document.getElementById('message_area'); // Get the message area
+        const messageArea = document.getElementById('message_area');
+        const loadingSpinner = document.getElementById('loading_spinner');
+        const audioControlsContainer = document.getElementById('audio_controls');
 
         const word = wordInput.value.trim();
 
-        // Clear previous messages
-        messageArea.innerHTML = '';
-        messageArea.style.color = 'black'; // Reset color
+        if (audioControlsContainer) {
+            audioControlsContainer.innerHTML = '';
+        }
 
-        // Only fetch if a word is entered and the definition field is empty
         if (word && !definitionTextarea.value.trim()) {
-            messageArea.textContent = 'Fetching definition...';
+            messageArea.innerHTML = '';
+            loadingSpinner.style.display = 'block';
+
             try {
-                // Make an AJAX request to a new Django endpoint
                 const response = await fetch('{% url "dictionary_app:get_definition_ajax" %}', {
-                    method: 'POST', // Use POST for data submission (even if just a word)
+                    method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRFToken': csrftoken // Include CSRF token for POST requests
+                        'X-CSRFToken': csrftoken
                     },
                     body: JSON.stringify({ 'word': word })
                 });
 
                 if (!response.ok) {
-                    // Check for specific API errors vs. network errors
-                    const errorData = await response.json(); // Try to parse error message
+                    const errorData = await response.json();
                     throw new Error(errorData.error || `HTTP error! Status: ${response.status}`);
                 }
 
                 const data = await response.json();
 
-                if (data.definition) {
-                    definitionTextarea.value = data.definition;
+                // --- Console Log for Debugging ---
+                console.log('API Response Data:', data);
+                console.log('Received Audio URL:', data.audioUrl);
+                // --- End Console Log ---
+
+                if (data.meanings && data.meanings.length > 0) {
+                    let formattedDefinitions = '';
+                    data.meanings.forEach(meaning => {
+                        if (meaning.partOfSpeech) {
+                            formattedDefinitions += `(${meaning.partOfSpeech})\n`;
+                        }
+                        if (meaning.definitions && meaning.definitions.length > 0) {
+                            meaning.definitions.forEach((def, index) => {
+                                formattedDefinitions += `${index + 1}. ${def}\n`;
+                            });
+                        }
+                        if (meaning.partOfSpeech || (meaning.definitions && meaning.definitions.length > 0)) {
+                            formattedDefinitions += '\n';
+                        }
+                    });
+
+                    definitionTextarea.value = formattedDefinitions.trim();
                     messageArea.textContent = 'Definition fetched successfully!';
                     messageArea.style.color = 'green';
                 } else {
-                    messageArea.textContent = `No definition found for "${word}". Please enter it manually.`;
+                    messageArea.textContent = data.message || `No definitions found for "${word}". Please enter it manually.`;
                     messageArea.style.color = 'orange';
+                    definitionTextarea.value = '';
+                }
+
+                // Logic for Audio
+                if (data.audioUrl) {
+                    const audio = new Audio(data.audioUrl);
+                    console.log('Audio object created:', audio)
+
+                    const playButton = document.createElement('button');
+                    playButton.type = 'button'; // <-- ADD THIS LINE
+                    playButton.innerHTML = '&#9658;';
+                    playButton.title = 'Play Pronunciation';
+                    playButton.className = 'play-audio-button';
+
+                    // Use an anonymous function to ensure 'audio' is captured correctly
+                    playButton.onclick = function () { // Changed to a regular function for 'this' context, though arrow function should also work here
+                        console.log('Play button clicked. Attempting to play audio from:', audio.src);
+                        audio.play()
+                            .then(() => {
+                                console.log('Audio played successfully!');
+                            })
+                            .catch(e => {
+                                console.error("Audio play failed (Promise rejected):", e);
+                                messageArea.textContent = 'Failed to play audio. Error: ' + e.message;
+                                messageArea.style.color = 'red';
+                            });
+                    };
+                    if (audioControlsContainer) {
+                        audioControlsContainer.appendChild(playButton);
+                        console.log('Play button appended.');
+                    }
+                } else {
+                    if (audioControlsContainer) {
+                        audioControlsContainer.innerHTML = '';
+                    }
+                    console.log('No audio URL received for this word.');
                 }
 
             } catch (error) {
-                console.error('Error fetching definition:', error);
+                console.error('Error fetching definition (full error):', error);
                 messageArea.textContent = `Error fetching definition: ${error.message}. Please enter it manually.`;
                 messageArea.style.color = 'red';
-                definitionTextarea.value = ''; // Clear definition if there was an error
+                definitionTextarea.value = '';
+                if (audioControlsContainer) {
+                    audioControlsContainer.innerHTML = '';
+                }
+            } finally {
+                loadingSpinner.style.display = 'none';
+                autoResizeTextarea(definitionTextarea);
             }
         }
     }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const definitionTextarea = document.getElementById('definition');
+        if (definitionTextarea.value.trim() !== '') {
+            autoResizeTextarea(definitionTextarea);
+        }
+    });
+
+    // Prevent form submission on Enter key press for non-textarea inputs
+    document.getElementById('add_word_form').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+            e.preventDefault();
+            if (e.target.id === 'word') {
+                fetchDefinition();
+            }
+        }
+    });
+
 </script>
 {% endblock %}

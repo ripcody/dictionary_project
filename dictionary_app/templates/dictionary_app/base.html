@@ -107,6 +107,97 @@
       border-radius: 4px;
       box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
     }
+
+    /* Basic styling for the spinner container */
+    #loading_spinner {
+      display: flex;
+      /* Use flexbox for easy centering of spinner and text */
+      align-items: center;
+      /* Vertically align items */
+      gap: 10px;
+      /* Space between spinner and text */
+      margin-top: 15px;
+      padding: 10px;
+      background-color: #e0f7fa;
+      /* Light blue background for visibility */
+      border: 1px solid #b2ebf2;
+      /* Border matching the color */
+      border-radius: 5px;
+      color: #007bff;
+      /* Text color */
+      font-weight: bold;
+    }
+
+    /* Spinner animation */
+    .spinner {
+      border: 4px solid rgba(0, 0, 0, 0.1);
+      /* Light grey border */
+      border-left-color: #007bff;
+      /* Blue spinning part */
+      border-radius: 50%;
+      /* Make it circular */
+      width: 24px;
+      height: 24px;
+      animation: spin 1s linear infinite;
+      /* Apply the spin animation */
+    }
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      /* Start at 0 degrees rotation */
+      100% {
+        transform: rotate(360deg);
+      }
+
+      /* Rotate 360 degrees */
+    }
+
+    textarea {
+      width: calc(100% - 22px);
+      padding: 10px;
+      margin-bottom: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      resize: none;
+      /* Prevents manual resizing by user (optional) */
+      overflow: hidden;
+      /* <--- ADD THIS LINE */
+    }
+
+    /* In your base.html <style> block */
+
+    .play-audio-button {
+      background-color: #007bff;
+      /* Blue background */
+      color: white;
+      /* White text/icon */
+      border: none;
+      border-radius: 50%;
+      /* Make it round */
+      width: 30px;
+      /* Small size */
+      height: 30px;
+      font-size: 16px;
+      cursor: pointer;
+      display: inline-flex;
+      /* Use flexbox to center content */
+      align-items: center;
+      justify-content: center;
+      vertical-align: middle;
+      /* Align with input field */
+      margin-left: 10px;
+      /* Space from the input */
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      transition: background-color 0.2s ease;
+    }
+
+    .play-audio-button:hover {
+      background-color: #0056b3;
+      /* Darker blue on hover */
+    }
   </style>
   {% block head_extra %}{% endblock %}
 </head>
