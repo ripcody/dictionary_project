@@ -6,34 +6,136 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}My Django Dictionary{% endblock %}</title>
   <style>
+    /* --- DEFAULT THEME VARIABLES (LIGHT THEME) --- */
+    :root,
+    body[data-theme="light"] {
+      --bg-color: #f4f4f4;
+      --text-color: #333;
+      --primary-color: #007bff;
+      /* Main brand color (blue) */
+      --secondary-color: #28a745;
+      /* Green for success/buttons */
+      --form-bg-color: white;
+      --border-color: #ddd;
+      --input-border-color: #ddd;
+      --input-focus-border-color: #007bff;
+      --flash-success-bg: #d4edda;
+      --flash-success-text: #155724;
+      --flash-warning-bg: #fff3cd;
+      --flash-warning-text: #856404;
+      --flash-error-bg: #f8d7da;
+      --flash-error-text: #721c24;
+      --link-color: #007bff;
+      --link-hover-color: #0056b3;
+      --button-hover-color: #218838;
+      --spinner-color: #007bff;
+      --spinner-bg-color: #e0f7fa;
+      --spinner-border-color: #b2ebf2;
+
+      /* Default Font Size */
+      --base-font-size: 16px;
+    }
+
+    /* --- DARK THEME VARIABLES --- */
+    body[data-theme="dark"] {
+      --bg-color: #2c2c2c;
+      --text-color: #e0e0e0;
+      --primary-color: #8bb4e8;
+      /* Lighter blue for contrast */
+      --secondary-color: #4CAF50;
+      /* Slightly desaturated green */
+      --form-bg-color: #3a3a3a;
+      --border-color: #555;
+      --input-border-color: #555;
+      --input-focus-border-color: #8bb4e8;
+      --flash-success-bg: #3c5e4a;
+      --flash-success-text: #a8e0b1;
+      --flash-warning-bg: #6b5c32;
+      --flash-warning-text: #f0e68c;
+      --flash-error-bg: #6e3c40;
+      --flash-error-text: #f0a0a0;
+      --link-color: #a8c9f0;
+      --link-hover-color: #79aee5;
+      --button-hover-color: #3e8e41;
+      --spinner-color: #a8c9f0;
+      --spinner-bg-color: #404a50;
+      --spinner-border-color: #55626b;
+    }
+
+    /* --- HIGH CONTRAST THEME VARIABLES --- */
+    body[data-theme="contrast"] {
+      --bg-color: black;
+      --text-color: white;
+      --primary-color: cyan;
+      --secondary-color: lime;
+      --form-bg-color: #1a1a1a;
+      --border-color: cyan;
+      --input-border-color: cyan;
+      --input-focus-border-color: lime;
+      --flash-success-bg: #00ff00;
+      --flash-success-text: black;
+      --flash-warning-bg: #ffff00;
+      --flash-warning-text: black;
+      --flash-error-bg: #ff0000;
+      --flash-error-text: black;
+      --link-color: yellow;
+      --link-hover-color: lime;
+      --button-hover-color: #00e000;
+      --spinner-color: white;
+      --spinner-bg-color: #333;
+      --spinner-border-color: cyan;
+    }
+
+    /* --- GENERAL STYLES USING VARIABLES --- */
     body {
       font-family: sans-serif;
-      margin: 20px;
-      background-color: #f4f4f4;
-      color: #333;
+      margin: 0;
+      /* Changed to 0 as padding-top will handle vertical spacing */
+      padding: 20px;
+      /* Applies horizontal padding and bottom padding */
+      padding-top: 130px;
+      /* Adjust this value if needed */
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      font-size: var(--base-font-size);
+      transition: background-color 0.3s ease, color 0.3s ease;
     }
 
     h1,
     h2 {
-      color: #0056b3;
+      color: var(--primary-color);
+    }
+
+    nav {
+      display: flex;
+      justify-content: flex-start;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
     }
 
     nav a {
       margin-right: 15px;
       text-decoration: none;
-      color: #007bff;
+      color: var(--link-color);
+      padding: 5px 0;
+      white-space: nowrap;
     }
 
     nav a:hover {
       text-decoration: underline;
+      color: var(--link-hover-color);
     }
 
     form {
-      background: white;
+      background: var(--form-bg-color);
       padding: 20px;
       border-radius: 8px;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       margin-top: 20px;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
     }
 
     label {
@@ -47,28 +149,53 @@
       width: calc(100% - 22px);
       padding: 10px;
       margin-bottom: 10px;
-      border: 1px solid #ddd;
+      border: 1px solid var(--input-border-color);
       border-radius: 4px;
+      resize: none;
+      overflow: hidden;
+      box-sizing: border-box;
+      background-color: var(--form-bg-color);
+      /* Inherit form background */
+      color: var(--text-color);
+      /* Inherit text color */
+      transition: border-color 0.3s ease;
     }
 
-    button {
-      background-color: #28a745;
+    input[type="text"]:focus,
+    textarea:focus {
+      outline: none;
+      border-color: var(--input-focus-border-color);
+      box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+      /* Subtle focus ring */
+    }
+
+    button,
+    input[type="submit"] {
+      background-color: var(--secondary-color);
       color: white;
       padding: 10px 15px;
       border: none;
       border-radius: 4px;
       cursor: pointer;
-      font-size: 16px;
+      font-size: 1em;
+      /* Relative to body font size */
+      display: block;
+      width: 100%;
+      box-sizing: border-box;
+      transition: background-color 0.3s ease;
     }
 
-    button:hover {
-      background-color: #218838;
+    button:hover,
+    input[type="submit"]:hover {
+      background-color: var(--button-hover-color);
     }
 
     .flashes {
       list-style: none;
       padding: 0;
-      margin: 20px 0;
+      margin: 20px auto;
+      /* Use auto for centering */
+      max-width: 600px;
     }
 
     .flashes li {
@@ -78,21 +205,22 @@
     }
 
     .flash-message.success {
-      background-color: #d4edda;
-      color: #155724;
-      border: 1px solid #c3e6cb;
+      background-color: var(--flash-success-bg);
+      color: var(--flash-success-text);
+      border: 1px solid color-mix(in srgb, var(--flash-success-bg) 80%, black);
+      /* Dynamic border */
     }
 
     .flash-message.warning {
-      background-color: #fff3cd;
-      color: #856404;
-      border: 1px solid #ffeeba;
+      background-color: var(--flash-warning-bg);
+      color: var(--flash-warning-text);
+      border: 1px solid color-mix(in srgb, var(--flash-warning-bg) 80%, black);
     }
 
     .flash-message.error {
-      background-color: #f8d7da;
-      color: #721c24;
-      border: 1px solid #f5c6cb;
+      background-color: var(--flash-error-bg);
+      color: var(--flash-error-text);
+      border: 1px solid color-mix(in srgb, var(--flash-error-bg) 80%, black);
     }
 
     ul {
@@ -101,45 +229,39 @@
     }
 
     li {
-      background: white;
+      background: var(--form-bg-color);
+      /* Use form background for list items */
       padding: 10px;
       margin-bottom: 5px;
       border-radius: 4px;
       box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
     }
 
-    /* Basic styling for the spinner container */
     #loading_spinner {
       display: flex;
-      /* Use flexbox for easy centering of spinner and text */
       align-items: center;
-      /* Vertically align items */
       gap: 10px;
-      /* Space between spinner and text */
       margin-top: 15px;
       padding: 10px;
-      background-color: #e0f7fa;
-      /* Light blue background for visibility */
-      border: 1px solid #b2ebf2;
-      /* Border matching the color */
+      background-color: var(--spinner-bg-color);
+      border: 1px solid var(--spinner-border-color);
       border-radius: 5px;
-      color: #007bff;
-      /* Text color */
+      color: var(--spinner-color);
       font-weight: bold;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+      transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
     }
 
-    /* Spinner animation */
     .spinner {
       border: 4px solid rgba(0, 0, 0, 0.1);
-      /* Light grey border */
-      border-left-color: #007bff;
-      /* Blue spinning part */
+      border-left-color: var(--spinner-color);
       border-radius: 50%;
-      /* Make it circular */
       width: 24px;
       height: 24px;
       animation: spin 1s linear infinite;
-      /* Apply the spin animation */
     }
 
     @keyframes spin {
@@ -147,56 +269,191 @@
         transform: rotate(0deg);
       }
 
-      /* Start at 0 degrees rotation */
       100% {
         transform: rotate(360deg);
       }
-
-      /* Rotate 360 degrees */
     }
-
-    textarea {
-      width: calc(100% - 22px);
-      padding: 10px;
-      margin-bottom: 10px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      resize: none;
-      /* Prevents manual resizing by user (optional) */
-      overflow: hidden;
-      /* <--- ADD THIS LINE */
-    }
-
-    /* In your base.html <style> block */
 
     .play-audio-button {
-      background-color: #007bff;
-      /* Blue background */
+      background-color: var(--primary-color);
+      /* Use primary color */
       color: white;
-      /* White text/icon */
       border: none;
       border-radius: 50%;
-      /* Make it round */
       width: 30px;
-      /* Small size */
       height: 30px;
       font-size: 16px;
       cursor: pointer;
       display: inline-flex;
-      /* Use flexbox to center content */
       align-items: center;
       justify-content: center;
       vertical-align: middle;
-      /* Align with input field */
       margin-left: 10px;
-      /* Space from the input */
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-      transition: background-color 0.2s ease;
+      transition: background-color 0.3s ease;
     }
 
     .play-audio-button:hover {
-      background-color: #0056b3;
-      /* Darker blue on hover */
+      background-color: var(--link-hover-color);
+      /* Use link hover color for consistency */
+    }
+
+    /* --- THEME/SETTINGS CONTROLS --- */
+    #settings-container {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      background-color: var(--form-bg-color);
+      padding: 10px 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      z-index: 1000;
+      /* Ensure it's on top */
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    #settings-container h3 {
+      margin-top: 0;
+      margin-bottom: 5px;
+      color: var(--text-color);
+      font-size: 1em;
+    }
+
+    #settings-container button {
+      width: auto;
+      /* Override 100% width for general buttons */
+      display: inline-block;
+      margin-right: 5px;
+      padding: 5px 10px;
+      font-size: 0.9em;
+      background-color: var(--primary-color);
+      color: white;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    #settings-container button:hover {
+      background-color: var(--link-hover-color);
+    }
+
+    /* --- MEDIA QUERIES FOR RESPONSIVENESS --- */
+
+    @media (max-width: 768px) {
+      body {
+        margin: 15px;
+        font-size: calc(var(--base-font-size) * 0.95);
+        /* Scale font size slightly */
+      }
+
+      h1,
+      h2 {
+        font-size: calc(24px * var(--base-font-size) / 16px);
+        /* Scale with base font, default 24px */
+      }
+
+      nav {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      nav a {
+        margin-right: 0;
+        margin-bottom: 8px;
+        font-size: calc(16px * var(--base-font-size) / 16px);
+        padding: 5px 0;
+      }
+
+      form,
+      .flashes,
+      #loading_spinner {
+        padding: 15px;
+        margin-left: 0;
+        margin-right: 0;
+        max-width: 100%;
+        border-radius: 0;
+      }
+
+      input[type="text"],
+      textarea {
+        width: calc(100% - 20px);
+      }
+
+      button,
+      input[type="submit"] {
+        padding: 12px 15px;
+        font-size: calc(18px * var(--base-font-size) / 16px);
+      }
+
+      #settings-container {
+        position: static;
+        /* Position normally within the flow */
+        margin: 15px auto 0;
+        /* Center it below the main content on smaller screens */
+        width: calc(100% - 30px);
+        /* Fill width */
+        box-sizing: border-box;
+        flex-direction: row;
+        /* Layout controls horizontally if space allows */
+        flex-wrap: wrap;
+        /* Allow wrapping */
+        justify-content: center;
+        gap: 5px;
+      }
+
+      #settings-container h3 {
+        width: 100%;
+        /* Take full width */
+        text-align: center;
+        margin-bottom: 10px;
+      }
+
+      #settings-container button {
+        flex-grow: 1;
+        /* Allow buttons to grow */
+        margin-right: 0;
+        /* Remove right margin */
+        text-align: center;
+      }
+    }
+
+    @media (max-width: 480px) {
+      body {
+        margin: 10px;
+        font-size: calc(var(--base-font-size) * 0.9);
+        /* Scale font size even more */
+      }
+
+      h1,
+      h2 {
+        font-size: calc(20px * var(--base-font-size) / 16px);
+      }
+
+      nav a {
+        font-size: calc(15px * var(--base-font-size) / 16px);
+        margin-bottom: 6px;
+      }
+
+      form,
+      .flashes,
+      #loading_spinner {
+        padding: 10px;
+      }
+
+      input[type="text"],
+      textarea {
+        width: calc(100% - 20px);
+      }
+
+      .play-audio-button {
+        width: 28px;
+        height: 28px;
+        font-size: 14px;
+        margin-left: 5px;
+      }
     }
   </style>
   {% block head_extra %}{% endblock %}
@@ -208,6 +465,18 @@
     <a href="{% url 'dictionary_app:search_word' %}">Search Word</a>
     <a href="{% url 'dictionary_app:view_all_words' %}">View All Words</a>
   </nav>
+
+  <div id="settings-container">
+    <h3>Theme</h3>
+    <button onclick="setTheme('light')">Light</button>
+    <button onclick="setTheme('dark')">Dark</button>
+    <button onclick="setTheme('contrast')">Contrast</button>
+
+    <h3>Font Size</h3>
+    <button onclick="changeFontSize(-1)">A-</button>
+    <button onclick="changeFontSize(1)">A+</button>
+  </div>
+
   <h1>{% block page_title %}My Django Dictionary{% endblock %}</h1>
 
   {% if messages %}
@@ -220,12 +489,77 @@
 
   <div class="main-content">
     {% block content %}
-    {# This is where the content from other templates (like add.html, search.html, etc.) will be inserted #}
     {% endblock %}
   </div>
 
   {% block scripts %}
-  {% endblock %}
+  <script>
+    // --- Theme Functions ---
+    function setTheme(themeName) {
+      document.body.setAttribute('data-theme', themeName);
+      localStorage.setItem('theme', themeName); // Store preference in local storage
+      console.log("Theme set to:", themeName);
+    }
+
+    // --- Font Size Functions ---
+    const MIN_FONT_SIZE = 12; // Minimum font size in pixels
+    const MAX_FONT_SIZE = 24; // Maximum font size in pixels
+    const FONT_SIZE_STEP = 1; // How much to change font size by
+
+    function getBaseFontSize() {
+      // Get the computed font size of the body, and convert it to a number
+      // We use getComputedStyle to read the actual pixel value
+      return parseFloat(getComputedStyle(document.body).getPropertyValue('--base-font-size'));
+    }
+
+    function setBaseFontSize(size) {
+      document.body.style.setProperty('--base-font-size', size + 'px');
+      localStorage.setItem('fontSize', size); // Store preference
+      console.log("Font size set to:", size);
+    }
+
+    function changeFontSize(direction) {
+      let currentSize = getBaseFontSize();
+      let newSize = currentSize + (direction * FONT_SIZE_STEP);
+
+      // Clamp the new size within min/max bounds
+      newSize = Math.max(MIN_FONT_SIZE, Math.min(MAX_FONT_SIZE, newSize));
+
+      setBaseFontSize(newSize);
+    }
+
+    // --- Apply saved preferences on page load ---
+    document.addEventListener('DOMContentLoaded', function () {
+      // Apply saved theme
+      const savedTheme = localStorage.getItem('theme');
+      if (savedTheme) {
+        setTheme(savedTheme);
+      } else {
+        // Set a default theme if none is saved (e.g., 'light')
+        setTheme('light');
+      }
+
+      // Apply saved font size
+      const savedFontSize = localStorage.getItem('fontSize');
+      if (savedFontSize) {
+        // Ensure it's a number and within bounds
+        let initialSize = parseFloat(savedFontSize);
+        initialSize = Math.max(MIN_FONT_SIZE, Math.min(MAX_FONT_SIZE, initialSize));
+        setBaseFontSize(initialSize);
+      } else {
+        // Set a default font size if none is saved
+        setBaseFontSize(16); // Your default
+      }
+
+      // (Your existing DOMContentLoaded script for autoResizeTextarea might go here)
+      const definitionTextarea = document.getElementById('definition');
+      if (definitionTextarea && definitionTextarea.value.trim() !== '') {
+        // Delay autoResizeTextarea slightly to ensure new font-size is applied
+        setTimeout(() => autoResizeTextarea(definitionTextarea), 0);
+      }
+    });
+  </script>
+  {% endblock %} {# End of scripts block #}
 </body>
 
 </html>
