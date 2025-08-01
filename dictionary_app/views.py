@@ -6,6 +6,7 @@ from django.http import JsonResponse
 from .models import Word # Import your Word model
 from django.db import IntegrityError
 from django.contrib.auth.decorators import login_required # Import login_required decorator
+import traceback # Import traceback for detailed error logging
 from django.views.decorators.csrf import csrf_exempt # TEMPORARY: For AJAX testing, REMOVE LATER!
 import json # For parsing incoming JSON
 import requests # Import the requests library for API calls
@@ -84,7 +85,6 @@ def add_word(request):
 
 
 @login_required
-# @csrf_exempt # <--- REMEMBER TO REMOVE THIS IN PRODUCTION!
 def get_definition_ajax(request):
     if request.method == 'POST':
         try:
@@ -97,96 +97,89 @@ def get_definition_ajax(request):
             print(f"--- AJAX: Fetching definition for '{word_to_fetch}' ---")
 
             response = requests.get(f"{FREE_DICTIONARY_API_URL}{word_to_fetch}")
-            response.raise_for_status()
+            response.raise_for_status() # Raise HTTPError for bad responses (4xx or 5xx)
 
             api_data = response.json()
-            print("--- AJAX API Response Data ---")
-            print(api_data)
-            print("------------------------------")
+            print("--- AJAX API Response Data (Full) ---")
+            # Print the full API response to help debug unexpected structures
+            print(json.dumps(api_data, indent=2)) # Pretty print JSON
+            print("-------------------------------------")
 
-            # --- NEW LOGIC START ---
-            parsed_meanings = []
-            audio_url = "" # Initialize audio_url
+            audio_url = ""
+            # Use a dictionary to store unique meanings by partOfSpeech, then convert to list
+            # Example: { 'verb': ['def1', 'def2'], 'noun': ['defA'] }
+            consolidated_meanings = {} 
+
+            if api_data and isinstance(api_data, list):
+                # 1. Try to get audio from the first entry that has it
+                for entry_data in api_data:
+                    if entry_data.get('phonetics'):
+                        for phonetic_entry in entry_data['phonetics']:
+                            if phonetic_entry.get('audio'):
+                                audio_url = phonetic_entry['audio']
+                                # Ensure 'https:' protocol for consistency if URL is protocol-relative
+                                if audio_url.startswith('//'):
+                                    audio_url = 'https:' + audio_url
+                                break # Stop searching for audio once found in any entry
+                    if audio_url:
+                        break
+
+                # 2. Process meanings from ALL top-level entries and consolidate
+                for entry_data in api_data:
+                    if entry_data.get('meanings'):
+                        for meaning_entry in entry_data['meanings']:
+                            part_of_speech = meaning_entry.get('partOfSpeech', '').strip()
+                            
+                            if part_of_speech: # Only process if partOfSpeech is not empty
+                                # Initialize list for this partOfSpeech if it doesn't exist yet
+                                if part_of_speech not in consolidated_meanings:
+                                    consolidated_meanings[part_of_speech] = []
+
+                                if meaning_entry.get('definitions'):
+                                    for def_detail in meaning_entry['definitions']:
+                                        definition_text = def_detail.get('definition', '').strip()
+                                        if definition_text:
+                                            # Add definition only if it's not already present for this partOfSpeech
+                                            if definition_text not in consolidated_meanings[part_of_speech]:
+                                                consolidated_meanings[part_of_speech].append(definition_text)
+
+            # 3. Convert consolidated_meanings dictionary back to a list of dicts for frontend
+            #    and apply the limit of 3 definitions per part of speech.
+            parsed_meanings_list = []
+            for pos, definitions in consolidated_meanings.items():
+                parsed_meanings_list.append({
+                    'partOfSpeech': pos,
+                    'definitions': definitions[:3] # Trim to first 3 unique definitions
+                })
             
-            if api_data and isinstance(api_data, list) and api_data[0].get('phonetics'):
-                for phonetic_entry in api_data[0]['phonetics']:
-                    if phonetic_entry.get('audio'):
-                        audio_url = phonetic_entry['audio']
-                        # The audio URLs often start with "//", which needs "https:" prepended
-                        # to ensure it's a valid absolute URL for the browser.
-                        if audio_url.startswith('//'):
-                            audio_url = 'https:' + audio_url
-                        break # Take the first available audio and break the loop
+            # Optional: Sort parts of speech for consistent display order (e.g., alphabetically)
+            parsed_meanings_list.sort(key=lambda x: x['partOfSpeech'])
 
-            if api_data and isinstance(api_data, list) and api_data[0].get('meanings'):
-                # The API response is often a list of entries for a word (e.g., if there are homographs)
-                # We'll focus on the first entry for simplicity, which typically contains all meanings.
-                for meaning_entry in api_data[0]['meanings']:
-                    part_of_speech = meaning_entry.get('partOfSpeech', '').strip()
-                    definitions_for_pos = []
 
-                    if meaning_entry.get('definitions'):
-                        # Iterate through definitions for the current part of speech, up to 3
-                        for i, def_detail in enumerate(meaning_entry['definitions']):
-                            if i >= 3: # Limit to the first three definitions
-                                break
-                            if def_detail.get('definition'):
-                                definitions_for_pos.append(def_detail['definition'].strip())
-                    
-                    # Only add this meaning if it has a part of speech or definitions
-                    if part_of_speech or definitions_for_pos:
-                        parsed_meanings.append({
-                            'partOfSpeech': part_of_speech,
-                            'definitions': definitions_for_pos
-                        })
-            if api_data and isinstance(api_data, list) and api_data[0].get('meanings'):
-                for meaning_entry in api_data[0]['meanings']:
-                    part_of_speech = meaning_entry.get('partOfSpeech', '').strip()
-                    definitions_for_pos = []
-
-                    if meaning_entry.get('definitions'):
-                        for i, def_detail in enumerate(meaning_entry['definitions']):
-                            if i >= 3:
-                                break
-                            if def_detail.get('definition'):
-                                definitions_for_pos.append(def_detail['definition'].strip())
-                    
-                    if part_of_speech or definitions_for_pos:
-                        parsed_meanings.append({
-                            'partOfSpeech': part_of_speech,
-                            'definitions': definitions_for_pos
-                        })
-
-            if parsed_meanings:
-                # Return both meanings and audioUrl
-                return JsonResponse({'meanings': parsed_meanings, 'audioUrl': audio_url})
+            if parsed_meanings_list:
+                return JsonResponse({'meanings': parsed_meanings_list, 'audioUrl': audio_url})
             else:
+                # Handle cases where API returns data but no meanings (e.g., just meta-info)
                 if isinstance(api_data, dict) and 'title' in api_data and 'message' in api_data:
+                    # API returned a specific error message (like "No Definitions Found")
                     return JsonResponse({'meanings': [], 'audioUrl': audio_url, 'message': api_data['message']}, status=200)
+                # Generic message if no parsed meanings were found
                 return JsonResponse({'meanings': [], 'audioUrl': audio_url, 'message': 'No definitions found for this word.'}, status=200)
 
-            # if parsed_meanings:
-            #     # Return a dictionary with a 'meanings' list
-            #     return JsonResponse({'meanings': parsed_meanings})
-            # else:
-            #     # Handle cases where the word is found but no parsable meanings/definitions
-            #     # Check for API's specific "word not found" message
-            #     if isinstance(api_data, dict) and 'title' in api_data and 'message' in api_data:
-            #         return JsonResponse({'meanings': [], 'message': api_data['message']}, status=200)
-            #     # Generic "no definitions found"
-            #     return JsonResponse({'meanings': [], 'message': 'No definitions found for this word.'}, status=200)
-
-            # --- NEW LOGIC END ---
-
         except json.JSONDecodeError:
+            # Error if the request body is not valid JSON
             return JsonResponse({'error': 'Invalid JSON in request body.'}, status=400)
         except requests.exceptions.RequestException as e:
+            # Error if the API request itself fails (e.g., network error, 404 from API)
             print(f"--- AJAX Error: API request failed: {e} ---")
             return JsonResponse({'error': f'Failed to fetch definition from API: {e}.'}, status=500)
-        except (IndexError, KeyError, TypeError) as e:
-            print(f"--- AJAX Error: Could not parse API response: {e} ---")
-            return JsonResponse({'error': f'Could not parse definition from API response: {e}.'}, status=500)
+        except Exception as e:
+            # Catch any other unexpected errors during data processing
+            print(f"--- AJAX Error: Could not process API response or unexpected data: {e} ---")
+            traceback.print_exc() # Print full traceback for detailed debugging
+            return JsonResponse({'error': f'Could not process definition from API response: {e}.'}, status=500)
     else:
+        # Only allow POST requests to this endpoint
         return JsonResponse({'error': 'Only POST requests are allowed for this endpoint.'}, status=405)
 
 
