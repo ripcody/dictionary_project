@@ -1,4 +1,4 @@
-# dictionary_project/settings.py
+import os
 
 from pathlib import Path # <-- Make sure this import is here
 
@@ -11,7 +11,9 @@ ROOT_URLCONF = 'dictionary_project.urls'
 # dictionary_project/settings.py
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True # <--- Make sure this is True for development!
+DEBUG = False # <--- Make sure this is True for development!
+
+ALLOWED_HOSTS = ['dictionary_project.azurewebsites.net', 'localhost', '127.0.0.1']
 
 
 # The rest of your settings would follow below this.
@@ -104,6 +106,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 STATIC_URL = '/static/' # <-- Add this line
+
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # dictionary_project/settings.py
 # ...
