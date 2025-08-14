@@ -13,7 +13,7 @@ ROOT_URLCONF = 'dictionary_project.urls'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False # <--- Make sure this is True for development!
 
-ALLOWED_HOSTS = ['dictionary_project.azurewebsites.net', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['dictionary-project-h5dab2haftazaqgs.canadacentral-01.azurewebsites.net', 'localhost', '127.0.0.1']
 
 
 # The rest of your settings would follow below this.
