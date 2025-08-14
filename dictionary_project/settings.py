@@ -21,10 +21,8 @@ ALLOWED_HOSTS = ['dictionary-project-h5dab2haftazaqgs.canadacentral-01.azurewebs
 
 DATABASES = {
     'default': {
-        'ENGINE': 'mssql_django',
+        'ENGINE': 'mssql',
         'NAME': 'MyDictionary',
-        'USER': 'cody',
-        'PASSWORD': '123456',
         'HOST': 'localhost',  # or your server IP
         'PORT': '',           # leave empty for default
         'OPTIONS': {
@@ -36,41 +34,6 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3', # This line will now work correctly
     },
 }
-
-
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3', # This line will now work correctly
-#     },
-#     'sqlserver': {
-#         'ENGINE': 'mssql',
-#         'NAME': 'MyDictionary',
-#         'HOST': 'localhost',  # or your server IP
-#         'PORT': '',           # leave empty for default
-#         'OPTIONS': {
-#             'driver': 'ODBC Driver 17 for SQL Server',
-#         },
-#     },
-# }
-
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'mssql_django',
-#         'NAME': 'your_database_name',
-#         'USER': 'your_sql_server_user',
-#         'PASSWORD': 'your_sql_server_password',
-#         'HOST': 'your-sql-server.database.windows.net',
-#         'PORT': '',
-#         'OPTIONS': {
-#             'driver': 'ODBC Driver 17 for SQL Server',
-#         },
-#     },
-#     'sqlite': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
 
 # ... (rest of your settings) ...
 
