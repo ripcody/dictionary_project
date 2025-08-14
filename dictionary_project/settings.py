@@ -23,7 +23,16 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3', # This line will now work correctly
-    }
+    },
+    'sqlserver': {
+        'ENGINE': 'mssql',
+        'NAME': 'MyDictionary',
+        'HOST': 'localhost',  # or your server IP
+        'PORT': '',           # leave empty for default
+        'OPTIONS': {
+            'driver': 'ODBC Driver 17 for SQL Server',
+        },
+    },
 }
 
 # ... (rest of your settings) ...
