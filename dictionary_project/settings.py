@@ -22,8 +22,11 @@ ALLOWED_HOSTS = ['dictionary-project-h5dab2haftazaqgs.canadacentral-01.azurewebs
 DATABASES = {
     'default': {
         'ENGINE': 'mssql_django',
-        'NAME': 'MyDictionary',
-        'HOST': 'localhost',  # or your server IP
+        'NAME': 'mydictionary',
+        # 'HOST': 'localhost',  # or your server IP
+        'HOST': 'mydictionary.database.windows.net',  # or your server IP
+        'USERNAME': 'sqladmin',
+        'PASSWORD': 'Pa$$word123',
         'PORT': '',           # leave empty for default
         'OPTIONS': {
             'driver': 'ODBC Driver 17 for SQL Server',
