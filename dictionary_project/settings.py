@@ -23,8 +23,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'mssql',
         'NAME': 'mydictionary',
-        # 'USER': 'sqladmin',
-        'HOST': 'mydictionary.database.windows.net',  # or your server IP
+        'HOST': 'localhost',  # or your server IP
         'PORT': '',           # leave empty for default
         'OPTIONS': {
             'driver': 'ODBC Driver 17 for SQL Server',
