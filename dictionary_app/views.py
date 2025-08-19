@@ -231,4 +231,4 @@ def view_all_words(request):
     # Retrieve all words belonging to the current user, ordered alphabetically
     all_items = Word.objects.filter(owner=request.user).order_by('word')
 
-    return render(request, 'dictionary_app/view.html', {'items': all_items})
+    return render(request, 'dictionary_app/view.html', {'items': all_items}) 

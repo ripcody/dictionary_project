@@ -1,0 +1,95 @@
+# -----------------------------------------------------------
+# File: templates/login.html
+# Note: You need to create a 'templates' folder inside your app directory
+# and put this file inside it.
+# -----------------------------------------------------------
+<style>
+  body {
+    font-family: sans-serif;
+    background-color: #f0f2f5;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+  }
+
+  .container {
+    background-color: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+  }
+
+  h2 {
+    color: #333;
+    margin-bottom: 1.5rem;
+  }
+
+  form {
+    display: flex;
+    flex-direction: column;
+  }
+
+  input[type="text"],
+  input[type="password"] {
+    padding: 12px;
+    margin-bottom: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 1rem;
+  }
+
+  button {
+    background-color: #007bff;
+    color: white;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+
+  button:hover {
+    background-color: #0056b3;
+  }
+
+  .link-text {
+    margin-top: 1rem;
+    font-size: 0.9rem;
+    color: #555;
+  }
+
+  .link-text a {
+    color: #007bff;
+    text-decoration: none;
+  }
+
+  .link-text a:hover {
+    text-decoration: underline;
+  }
+
+  .errorlist {
+    color: red;
+    margin-bottom: 1rem;
+    text-align: left;
+    list-style-type: none;
+    padding-left: 0;
+  }
+</style>
+
+<div class="container">
+  <h2>Log In</h2>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Log In</button>
+  </form>
+  <div class="link-text">
+    Don't have an account? <a href="{% url 'signup' %}">Sign Up</a>
+  </div>
+</div>
