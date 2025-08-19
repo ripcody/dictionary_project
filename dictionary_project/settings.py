@@ -23,7 +23,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'mssql',
         'NAME': 'mydictionary',
-        'USER': 'sqladmin',
+        # 'USER': 'sqladmin',
         'HOST': 'mydictionary.database.windows.net',  # or your server IP
         'PORT': '',           # leave empty for default
         'OPTIONS': {
