@@ -21,7 +21,7 @@ ALLOWED_HOSTS = ['dictionary-project-h5dab2haftazaqgs.canadacentral-01.azurewebs
 
 DATABASES = {
     'default': {
-        'ENGINE': 'mssql_django',
+        'ENGINE': 'mssql',
         'NAME': 'mydictionary',
         'USER': 'sqladmin',
         'HOST': 'mydictionary.database.windows.net',  # or your server IP
