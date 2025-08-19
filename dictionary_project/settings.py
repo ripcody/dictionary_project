@@ -21,7 +21,7 @@ ALLOWED_HOSTS = ['dictionary-project-h5dab2haftazaqgs.canadacentral-01.azurewebs
 
 DATABASES = {
     'default': {
-        'ENGINE': 'mssql',
+        'ENGINE': 'mssql_django',
         'NAME': 'mydictionary',
         'HOST': 'mydictionary.database.windows.net',  # or your server IP
         'PORT': '',           # leave empty for default
@@ -29,7 +29,7 @@ DATABASES = {
             'driver': 'ODBC Driver 17 for SQL Server',
         },
     },
-    'sqlserver': {
+    'sqlite': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3', # This line will now work correctly
     },
